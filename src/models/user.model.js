@@ -1,4 +1,4 @@
-import moongose, { Schema } from "moongose"
+import mongoose, { Schema } from "mongoose"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 
@@ -32,7 +32,7 @@ const UserSchema = new Schema({
         type: String,// cloudnary url
         required: true,
     },
-    coverimage: {
+    coverImage: {
         type: String,// cloudnary url
 
     },
@@ -100,4 +100,4 @@ UserSchema.methods.generateRefreshToken = function () {
 
 
 
-export const User = moongose.model("User", UserSchema)
+export const User = mongoose.model("User", UserSchema)

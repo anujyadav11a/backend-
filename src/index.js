@@ -19,12 +19,13 @@ connectDB()
 
         server.on("error", (error) => {
             console.error("ERRR:", error)
-            throw error
+            process.exit(1)
         })
 
     })
     .catch((error) => {
         console.error(`mongo db connection failed!!`, error)
+        process.exit(1)
     })
 
 /*
