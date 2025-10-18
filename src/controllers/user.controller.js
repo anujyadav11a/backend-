@@ -226,7 +226,115 @@ const refreshAccessToken= asyncHandler(async(req,res)=>{
  }
 })
 
-export { registerUser, userLogin, userLogout ,refreshAccessToken }
+const changeCurrentPassword=asyncHandler(async(req,res)=>{
+   const {oldpassword,newpassword,}=req.body
+   const user=await User.findById(req.user._id)
+
+   const isPasswordCorrect=user.isPasswordCorrect(oldpassword)
+   if(!isPasswordCorrect){
+      throw new ApiError(200,"invalid password")
+   }
+
+   user.password=newpassword
+   user.save({validateBeforeSave:false})
+
+   return res
+   .status(200)
+   .json(new ApiResponse(200),{},"your password has been  changed")
+})
+
+const getCurrentUser=asyncHandler(async(req,res)=>{
+   return res.status(200)
+   .json(200,req.user,"user successfully fetch")
+})
+
+const updateAccountdetail=asyncHandler(async(req,res)=>{
+   const {email,fullname}=req.body
+if(!(email || fullname)){
+   throw new ApiError(400,"send valid fullname and email")
+}
+
+ const user=User.findById(
+   req.user?._id,
+   {
+     $set:{
+      fullname,
+     email
+     }
+   },
+   {
+      new:true
+   }
+
+).select("-password")
+
+return res.status(200)
+.json(new ApiResponse(200,user,"profile update successfully"))
+   
+})
+
+const updateAvatar=asyncHandler(async(req,res)=>{
+   const avatarLocalPath=req.file?.path
+   if(!avatarLocalPath){
+      throw new ApiError(401,"avatar is missng")
+   }
+
+    const avatar=await uploadOnCloudinary(avatarLocalPath)
+    if(!avatar){
+      throw new ApiError(401,"erroe while uploading the avatar")
+    }
+
+   const user= User.findByIdAndUpdate(
+      req.user._id,
+      {
+         $set:{
+            avatar:avatar.url
+         }
+      },
+      {new : true}
+    ).select("-password")
+
+    return res.status(200)
+    .json(new ApiResponse(200,user,"avatar successfully changed"))
+})
+
+const updateCoverImage=asyncHandler(async(req,res)=>{
+   const coverImageLocalPath=req.file?.path
+   if(!coverImageLocalPath){
+      throw new ApiError(401,"avatar is missng")
+   }
+
+    const coverImage=await uploadOnCloudinary(coverImageLocalPath)
+    if(!coverImage){
+      throw new ApiError(401,"erroe while uploading the avatar")
+    }
+
+   const user= User.findByIdAndUpdate(
+      req.user._id,
+      {
+         $set:{
+            coverImage:coverImage.url
+         }
+      },
+      {new : true}
+    ).select("-password")
+
+    return res.status(200)
+    .json(new ApiResponse(200,user,"coverIamge successfully changed"))
+})
+
+
+export { 
+   registerUser, 
+   userLogin, 
+   userLogout ,
+   refreshAccessToken,
+   changeCurrentPassword,
+   getCurrentUser,
+   updateAccountdetail,
+   updateAvatar,
+   updateCoverImage
+ }
 
 
 
