@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 
 const genrateAcessAndRefreshToken = async (userId) => {
@@ -334,7 +335,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
       {
          $lookup: {
-            from: "subscription",
+            from: "subscriptions",
             localField: "_id",
             foreignField: "channel",
             as: "subscribers"
@@ -342,7 +343,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
       {
          $lookup: {
-            from: "subscription",
+            from: "subscriptions",
             localField: "_id",
             foreignField: "subscriber",
             as: "ChannelsubscribeTo"
@@ -369,6 +370,53 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
    ])
 })
 
+const UserwatchHistory= asyncHandler(async(req,res)=>{
+     const user=  User.aggregate([
+      {
+         $match:{
+            _id:new mongoose.Types.ObjetcId(req.user._id)
+         }
+      },
+      {
+         $lookup:{
+            from:"vedios",
+            localField:"watchHistory",
+            foreignField:"_id",
+            as:"watchHistory",
+            pipeline:[
+               {
+                  $lookup:{
+                     from:"users",
+                     localField:"owner",
+                     foreignField:"_id",
+                     as:"owner",
+                     pipeline:[
+                        {
+                           $project:{
+                              fullName:1,
+                              username:1,
+                              avatar:1
+                           }
+
+                        }
+                     ]
+                  }
+               }
+            ]
+         }
+      },
+      {
+         $addFields:{
+            owner:"$owner"
+         }
+      }
+   
+     ])
+     return res.status(200)
+     .json(new ApiResponse(200,user[0].watchHistory,"watch history fetch successfully"))
+})
+
+
 export {
    registerUser,
    userLogin,
@@ -379,7 +427,8 @@ export {
    updateAccountdetail,
    updateAvatar,
    updateCoverImage,
-   getUserChannelProfile
+   getUserChannelProfile,
+   UserwatchHistory
 }
 
 
